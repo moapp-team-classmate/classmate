@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'new_homework.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -10,8 +11,8 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     Center(child: Text('Home Page Content')),
+    Center(child: NewHomeworkPage()),
     Center(child: Text('Dashboard Content')),
-    Center(child: Text('New Homework Content')),
   ];
 
   void _onItemTapped(int index) {

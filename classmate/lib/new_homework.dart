@@ -1,73 +1,185 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class NewHomeworkPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: NewHomeworkPage(),
-    );
-  }
+  State<NewHomeworkPage> createState() => _NewHomeworkPageState();
 }
 
-class NewHomeworkPage extends StatelessWidget {
+class _NewHomeworkPageState extends State<NewHomeworkPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _classNameController = TextEditingController();
+  final _subjectNameController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
+  DateTime? _selectedDeadline;
+
+  final DatabaseReference _database = FirebaseDatabase.instance.ref('Homework');
+
+  @override
+  void dispose() {
+    _classNameController.dispose();
+    _subjectNameController.dispose();
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  void _selectDeadline(BuildContext context) async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDeadline ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (selectedDate != null) {
+      setState(() {
+        _selectedDeadline = selectedDate;
+      });
+    }
+  }
+
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      final className = _classNameController.text;
+      final subjectName = _subjectNameController.text;
+      final title = _titleController.text;
+      final content = _contentController.text;
+      final deadline = _selectedDeadline;
+
+      if (deadline == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please select a deadline!')),
+        );
+        return;
+      }
+
+      try {
+        // Firebase에 데이터 저장
+        await _database.push().set({
+          'className': className,
+          'subjectName': subjectName,
+          'title': title,
+          'content': content,
+          'deadline': deadline.toIso8601String(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Homework added successfully!')),
+        );
+
+        // 폼 초기화
+        _classNameController.clear();
+        _subjectNameController.clear();
+        _titleController.clear();
+        _contentController.clear();
+        setState(() {
+          _selectedDeadline = null;
+        });
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add homework: $error')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('ClassMate'),
-      ),
-      body: Center(),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.home_outlined,
-                semanticLabel: 'home',
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _classNameController,
+                decoration: InputDecoration(
+                  labelText: 'Class Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter class name';
+                  }
+                  return null;
+                },
               ),
-            ),
-            IconButton(
-              onPressed: () {
-                GoRouter.of(context).go('/dashboard');
-              },
-              icon: Icon(
-                Icons.dashboard_outlined,
-                semanticLabel: 'my class',
+              SizedBox(height: 16.0),
+              TextFormField(
+                controller: _subjectNameController,
+                decoration: InputDecoration(
+                  labelText: 'Subject Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter subject name';
+                  }
+                  return null;
+                },
               ),
-            ),
-            IconButton(
-              onPressed: () {
-                GoRouter.of(context).go('/new_homework');
-              },
-              icon: Icon(
-                Icons.queue,
-                semanticLabel: 'new homework',
+              SizedBox(height: 16.0),
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter title';
+                  }
+                  return null;
+                },
               ),
-            ),
-            //TODO if user have profile picture change it
-            IconButton(
-              onPressed: () {
-                GoRouter.of(context).go('/profile');
-              },
-              icon: Icon(
-                Icons.account_circle_outlined,
-                semanticLabel: 'profile',
+              SizedBox(height: 16.0),
+              TextFormField(
+                controller: _contentController,
+                decoration: InputDecoration(
+                  labelText: 'Content',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 4,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter content';
+                  }
+                  return null;
+                },
               ),
-            ),
-          ],
+              SizedBox(height: 16.0),
+              GestureDetector(
+                onTap: () => _selectDeadline(context),
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    _selectedDeadline == null
+                        ? 'Select Deadline'
+                        : 'Deadline: ${_selectedDeadline}',
+                    style: TextStyle(
+                      color: _selectedDeadline == null
+                          ? Colors.grey
+                          : Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _submitForm,
+                child: Text('Submit'),
+              ),
+            ],
+          ),
         ),
-      )
+      ),
     );
   }
 }
