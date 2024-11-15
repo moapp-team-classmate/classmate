@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "193034358656",
+    "project_id": "project-mad-gimjungwook",
+    "storage_bucket": "project-mad-gimjungwook.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193034358656:android:7a075268527829a2d8fb65",
+        "android_client_info": {
+          "package_name": "project.mad.gimjungwook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuL1McR4kXNgAkQVpKzS5n_qW_C71Byak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
